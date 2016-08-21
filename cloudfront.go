@@ -26,7 +26,7 @@ type CloudFrontLogLine struct {
 	AccessURL     url.URL
 	ResultType    string
 	Referer       string
-	TimeTaken     float64
+	TimeTaken     float64 // in seconds
 	EdgeRequestID string
 }
 
