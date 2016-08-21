@@ -9,14 +9,12 @@ import (
 	"time"
 )
 
-// CloudFrontLogScanner extends a bufio.Scanner with CloudFront log reading cababilities
-// Assumes the stream is already uncompressed.
+// CloudFrontLogScanner extends a bufio.Scanner with CloudFront log reading cababilities.
 type CloudFrontLogScanner struct {
 	bufio.Scanner
 }
 
-// CloudFrontLogLine is the struct representing one line of a CF log
-// http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/AccessLogs.html#BasicDistributionFileFormat
+// CloudFrontLogLine is the struct representing one line of a CF log.
 type CloudFrontLogLine struct {
 	Comment       bool
 	Timestamp     time.Time
@@ -36,8 +34,7 @@ type CloudFrontLogLine struct {
 const dateTimeFormat = "2006-01-02 15:04:05"
 
 // LogLine parses the current scanner's Text() into a CF log line.
-// See http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/AccessLogs.html#BasicDistributionFileFormat
-// for indexes.
+// See http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/AccessLogs.html#BasicDistributionFileFormat for information about fields.
 func (s *CloudFrontLogScanner) LogLine() CloudFrontLogLine {
 	if strings.HasPrefix(s.Text(), "#") {
 		return CloudFrontLogLine{Comment: true}
@@ -73,7 +70,7 @@ func (s *CloudFrontLogScanner) LogLine() CloudFrontLogLine {
 	}
 }
 
-// NewCloudFrontScanner creates a new Cloudfont log scanner with a Reader.
+// NewCloudFrontScanner creates a new CloudFront log scanner with a Reader.
 // The reader must point to an uncompressed CloudFront log.
 func NewCloudFrontScanner(r io.Reader) CloudFrontLogScanner {
 	return CloudFrontLogScanner{Scanner: *bufio.NewScanner(r)}
