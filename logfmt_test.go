@@ -21,5 +21,9 @@ func TestLogfmtScanner(t *testing.T) {
 	assert.Equal(t, "info", kv["level"])
 	assert.Equal(t, "2016-08-15T06:11:06Z", kv["time"])
 
+	assert.True(t, scanner.Scan())
+	kv = scanner.LogLineKV()
+	assert.Equal(t, "550084kB", kv["sample#memory-cached"])
+	assert.Equal(t, "REDIS", kv["source"])
 	assert.False(t, scanner.Scan())
 }

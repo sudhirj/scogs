@@ -1,1 +1,2 @@
 122 <190>1 2016-08-15T06:11:06.807922+00:00 host app web.1 - time="2016-08-15T06:11:06Z" level=info event=sat.sqs.inbox.open
+375 <134>1 2016-08-19T21:38:47+00:00 host app heroku-redis - source=REDIS sample#active-connections=1 sample#load-avg-1m=0.13 sample#load-avg-5m=0.1 sample#load-avg-15m=0.08 sample#read-iops=0 sample#write-iops=0 sample#memory-total=15664876.0kB sample#memory-free=13301780.0kB sample#memory-cached=550084kB sample#memory-redis=303672bytes sample#hit-rate=1 sample#evicted-keys=0
