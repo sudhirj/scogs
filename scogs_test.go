@@ -39,7 +39,7 @@ func TestCloudfrontScanner(t *testing.T) {
 	assert.Equal(t, *expectedCFUrl, l.CloudFrontURL)
 
 	expectedAltURL, _ := url.Parse("https://sgn.rw7.io/4KUWWncQLgawVXcgfj7JDd/1WcELVj08seEinr6dQuG2m?w=1200&q=90")
-	assert.Equal(t, *expectedAltURL, l.AltURL)
+	assert.Equal(t, *expectedAltURL, l.AccessURL)
 
 	assert.Equal(t, "GET", l.Method)
 	assert.Equal(t, "Miss", l.ResultType)

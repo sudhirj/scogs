@@ -25,7 +25,7 @@ type CloudFrontLogLine struct {
 	Method        string
 	Status        int
 	CloudFrontURL url.URL
-	AltURL        url.URL
+	AccessURL     url.URL
 	ResultType    string
 	Referer       string
 	TimeTaken     float64
@@ -59,7 +59,7 @@ func (s *CloudFrontLogScanner) LogLine() CloudFrontLogLine {
 			Path:     parts[7],  // cs-uri-stem
 			RawQuery: parts[11], // cs-uri-query
 		},
-		AltURL: url.URL{
+		AccessURL: url.URL{
 			Scheme:   parts[16], // cs-protocol
 			Host:     parts[15], // x-host-header
 			Path:     parts[7],  // cs-uri-stem
