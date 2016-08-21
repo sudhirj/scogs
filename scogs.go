@@ -3,32 +3,33 @@ package scogs
 import (
 	"bufio"
 	"io"
-	"net"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
 )
 
-// CloudfrontScanner scans Cloudfront logs.
-// Uncompress the logs before reading them.
-type CloudfrontScanner struct {
+// CloudFrontLogScanner extends a bufio.Scanner with CloudFront log reading cababilities
+// Assumes the stream is already uncompressed.
+type CloudFrontLogScanner struct {
 	bufio.Scanner
 }
 
-// CFLogLine is the struct representing one line of a CF log
+// CloudFrontLogLine is the struct representing one line of a CF log
 // http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/AccessLogs.html#BasicDistributionFileFormat
-type CFLogLine struct {
-	Comment      bool
-	Time         time.Time
-	EdgeLocation string
-	// ResponseSize in bytes
-	ResponseSize int
-	ClientIP     net.IP
-	Method       string
-	Status       int
-	CFUrl        url.URL
-	AltURL       url.URL
+type CloudFrontLogLine struct {
+	Comment       bool
+	Timestamp     time.Time
+	EdgeLocation  string
+	ResponseSize  int // in bytes
+	Method        string
+	Status        int
+	CloudFrontURL url.URL
+	AltURL        url.URL
+	ResultType    string
+	Referer       string
+	TimeTaken     float64
+	EdgeRequestID string
 }
 
 // Example date and time: 2016-08-15	06:04:29
@@ -37,29 +38,43 @@ const dateTimeFormat = "2006-01-02 15:04:05"
 // LogLine parses the current scanner's Text() into a CF log line.
 // See http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/AccessLogs.html#BasicDistributionFileFormat
 // for indexes.
-func (s *CloudfrontScanner) LogLine() CFLogLine {
+func (s *CloudFrontLogScanner) LogLine() CloudFrontLogLine {
 	if strings.HasPrefix(s.Text(), "#") {
-		return CFLogLine{Comment: true}
+		return CloudFrontLogLine{Comment: true}
 	}
 	text := s.Text()
 	text = strings.Trim(text, "\t")
 	parts := strings.Split(text, "\t")
-	timestamp, _ := time.Parse(dateTimeFormat, strings.Join(parts[0:2], " "))
-	responseSize, _ := strconv.Atoi(parts[3])
-	return CFLogLine{
-		Time:         timestamp,
-		EdgeLocation: parts[2],
-		ResponseSize: responseSize,
-		CFUrl: url.URL{
-			Scheme:   parts[16],
-			Host:     parts[6],
-			Path:     parts[7],
-			RawQuery: parts[11],
+	dateAndTime := parts[0:2] // date, time
+	timestamp, _ := time.Parse(dateTimeFormat, strings.Join(dateAndTime, " "))
+	responseSize, _ := strconv.Atoi(parts[3])         // sc-bytes
+	timeTaken, _ := strconv.ParseFloat(parts[18], 64) // time-taken
+	return CloudFrontLogLine{
+		Timestamp:    timestamp,
+		EdgeLocation: parts[2],     // x-edge-location
+		ResponseSize: responseSize, // sc-bytes
+		CloudFrontURL: url.URL{
+			Scheme:   parts[16], // cs-protocol
+			Host:     parts[6],  // cs(Host)
+			Path:     parts[7],  // cs-uri-stem
+			RawQuery: parts[11], // cs-uri-query
 		},
+		AltURL: url.URL{
+			Scheme:   parts[16], // cs-protocol
+			Host:     parts[15], // x-host-header
+			Path:     parts[7],  // cs-uri-stem
+			RawQuery: parts[11], // cs-uri-query
+		},
+		Method:        parts[5],  // cs-method
+		ResultType:    parts[13], // x-edge-result-type
+		Referer:       parts[9],  // cs(Referer)
+		TimeTaken:     timeTaken, // time-taken
+		EdgeRequestID: parts[14], // x-edge-request-id
 	}
 }
 
-// NewCloudfrontScanner creates a new Cloudfont log scanner with a Reader
-func NewCloudfrontScanner(r io.Reader) CloudfrontScanner {
-	return CloudfrontScanner{Scanner: *bufio.NewScanner(r)}
+// NewCloudFrontScanner creates a new Cloudfont log scanner with a Reader.
+// The reader must point to an uncompressed CloudFront log.
+func NewCloudFrontScanner(r io.Reader) CloudFrontLogScanner {
+	return CloudFrontLogScanner{Scanner: *bufio.NewScanner(r)}
 }
